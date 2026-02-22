@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 export function extractQuestionTitle(url: string): string {
   try {
     const urlObj = new URL(url);
-    const pathMatch = urlObj.pathname.match(/\/problems\/([^\/]+)/);
+    const pathMatch = urlObj.pathname.match(/\/problems\/([^/]+)/);
     
     if (pathMatch && pathMatch[1]) {
       const kebabCaseTitle = pathMatch[1];

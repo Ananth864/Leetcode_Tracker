@@ -1,33 +1,35 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { SunIcon, MoonIcon } from '@hugeicons/core-free-icons';
 import { saveTheme, loadTheme } from '@/lib/storage';
 
 export function ThemeToggle() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
-
-  useEffect(() => {
+  const [theme, setTheme] = useState<'light' | 'dark'>(() => {
     const savedTheme = loadTheme();
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const initialTheme = savedTheme || (prefersDark ? 'dark' : 'light');
-    setTheme(initialTheme);
-    applyTheme(initialTheme);
-  }, []);
+    
+    if (initialTheme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
+    return initialTheme;
+  });
 
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    applyTheme(newTheme);
-    saveTheme(newTheme);
-  };
-
-  const applyTheme = (newTheme: 'light' | 'dark') => {
+    
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
+    
+    saveTheme(newTheme);
   };
 
   return (
