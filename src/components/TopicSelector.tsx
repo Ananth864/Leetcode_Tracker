@@ -76,7 +76,7 @@ export function TopicSelector({ selectedTopics, onTopicsChange }: TopicSelectorP
 
       <div className="border rounded-md">
         <Command shouldFilter={false}>
-          <div className="flex items-center border-b px-3">
+          <div className="flex items-center px-3">
             <CommandInput
               placeholder="Search or create topic..."
               value={searchQuery}
@@ -96,26 +96,28 @@ export function TopicSelector({ selectedTopics, onTopicsChange }: TopicSelectorP
               </Button>
             )}
           </div>
-          <CommandList>
-            <CommandEmpty>No topics found</CommandEmpty>
-            <CommandGroup>
-              {filteredTopics.map((topic) => (
-                <CommandItem
-                  key={topic}
-                  value={topic}
-                  onSelect={() => handleAddTopic(topic)}
-                  disabled={selectedTopicsSet.has(topic)}
-                >
-                  <div className="flex items-center gap-2">
-                    {selectedTopicsSet.has(topic) && (
-                      <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4" />
-                    )}
-                    {topic}
-                  </div>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
+          {searchQuery && (
+            <CommandList>
+              <CommandEmpty>No topics found</CommandEmpty>
+              <CommandGroup>
+                {filteredTopics.map((topic) => (
+                  <CommandItem
+                    key={topic}
+                    value={topic}
+                    onSelect={() => handleAddTopic(topic)}
+                    disabled={selectedTopicsSet.has(topic)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {selectedTopicsSet.has(topic) && (
+                        <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4" />
+                      )}
+                      {topic}
+                    </div>
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            </CommandList>
+          )}
         </Command>
       </div>
     </div>

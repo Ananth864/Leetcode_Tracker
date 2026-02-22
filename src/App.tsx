@@ -28,6 +28,7 @@ function LeetcodeTracker() {
   const [searchTerm, setSearchTerm] = useState('');
   const [progressFilter, setProgressFilter] = useState<Progress | 'all'>('all');
   const [topicFilter, setTopicFilter] = useState<string | 'all'>('all');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredQuestions = filterQuestions(
     questions,
@@ -91,8 +92,8 @@ function LeetcodeTracker() {
                 availableTopics={availableTopics}
               />
             </div>
-            <AddQuestionModal onAdd={addQuestion}>
-              <Button>
+            <AddQuestionModal open={isModalOpen} onOpenChange={setIsModalOpen} onAdd={addQuestion}>
+              <Button onClick={() => setIsModalOpen(true)}>
                 <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
                 Add Question
               </Button>
