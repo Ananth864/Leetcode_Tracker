@@ -47,6 +47,26 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
 
       if (savedGistId) {
         setGistIdState(savedGistId);
+      } else {
+        const { getGistClient } = await import('@/lib/github-gist');
+        const client = getGistClient();
+        const existingGists = await client.listGists();
+
+        if (existingGists.length > 0) {
+          const gistId = existingGists[0].id;
+          const result = await syncFromGist(gistId, setSyncStatus);
+          if (result.success && result.data) {
+            const sortedQuestions = sortQuestions(result.data.questions);
+            setQuestions(sortedQuestions);
+            saveQuestions(sortedQuestions);
+            setGistIdState(gistId);
+            saveGistId(gistId);
+            if (result.data.lastSynced) {
+              setLastSynced(result.data.lastSynced);
+              saveLastSynced(result.data.lastSynced);
+            }
+          }
+        }
       }
 
       if (savedLastSynced) {
