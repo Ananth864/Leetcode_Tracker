@@ -7,8 +7,7 @@ import { FilterControls } from '@/components/FilterControls';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncButton } from '@/components/SyncButton';
 import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { PlusSignIcon, CodeIcon } from '@hugeicons/core-free-icons';
@@ -24,8 +23,6 @@ function LeetcodeTracker() {
     syncToGist,
     syncStatus,
     lastSynced,
-    showHints,
-    toggleHints,
   } = useQuestions();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -94,31 +91,18 @@ function LeetcodeTracker() {
                 availableTopics={availableTopics}
               />
             </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Switch
-                  id="show-hints"
-                  checked={showHints}
-                  onCheckedChange={toggleHints}
-                />
-                <Label htmlFor="show-hints" className="cursor-pointer">
-                  Show Hints
-                </Label>
-              </div>
-              <AddQuestionModal onAdd={addQuestion}>
-                <Button>
-                  <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
-                  Add Question
-                </Button>
-              </AddQuestionModal>
-            </div>
+            <AddQuestionModal onAdd={addQuestion}>
+              <Button>
+                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
+                Add Question
+              </Button>
+            </AddQuestionModal>
           </div>
         </header>
 
         <main>
           <QuestionTable
             questions={filteredQuestions}
-            showHints={showHints}
             onProgressChange={handleProgressChange}
             onDelete={deleteQuestion}
           />

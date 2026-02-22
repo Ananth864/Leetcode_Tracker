@@ -12,14 +12,12 @@ import type { Question, Progress } from '@/types';
 
 interface QuestionTableProps {
   questions: Question[];
-  showHints: boolean;
   onProgressChange: (id: string, progress: Progress) => void;
   onDelete: (id: string) => void;
 }
 
 export function QuestionTable({
   questions,
-  showHints,
   onProgressChange,
   onDelete,
 }: QuestionTableProps) {
@@ -36,7 +34,7 @@ export function QuestionTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {questions.length === 0 ? (
+            {questions.length === 0 ? (
             <TableRow>
               <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
                 No questions yet. Click &quot;Add Question&quot; to get started.
@@ -47,7 +45,6 @@ export function QuestionTable({
               <QuestionRow
                 key={question.id}
                 question={question}
-                showHints={showHints}
                 onProgressChange={onProgressChange}
                 onDelete={onDelete}
               />

@@ -3,19 +3,14 @@ import { Badge } from '@/components/ui/badge';
 
 interface HintsCellProps {
   hints: [string?, string?, string?];
-  showHints: boolean;
 }
 
-export function HintsCell({ hints, showHints }: HintsCellProps) {
+export function HintsCell({ hints }: HintsCellProps) {
   const hintBadges = [
     { label: 'H1', hint: hints[0] },
     { label: 'H2', hint: hints[1] },
     { label: 'H3', hint: hints[2] },
   ];
-
-  if (!showHints) {
-    return null;
-  }
 
   return (
     <TooltipProvider>

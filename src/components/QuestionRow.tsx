@@ -20,13 +20,12 @@ import { Delete02Icon } from '@hugeicons/core-free-icons';
 
 interface QuestionRowProps {
   question: Question;
-  showHints: boolean;
   onProgressChange: (id: string, progress: Progress) => void;
   onDelete: (id: string) => void;
 }
 
 export const QuestionRow = memo(
-  function QuestionRow({ question, showHints, onProgressChange, onDelete }: QuestionRowProps) {
+  function QuestionRow({ question, onProgressChange, onDelete }: QuestionRowProps) {
     return (
       <tr className="border-b border-border hover:bg-muted/50 transition-colors">
         <td className="py-3 px-4">
@@ -55,7 +54,7 @@ export const QuestionRow = memo(
           </div>
         </td>
         <td className="py-3 px-4">
-          <HintsCell hints={question.hints} showHints={showHints} />
+          <HintsCell hints={question.hints} />
         </td>
         <td className="py-3 px-4 text-right">
           <AlertDialog>

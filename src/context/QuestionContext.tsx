@@ -21,8 +21,6 @@ interface QuestionContextValue {
   syncFromGist: (gistId: string) => Promise<void>;
   syncStatus: SyncStatus;
   lastSynced: string | null;
-  showHints: boolean;
-  toggleHints: () => void;
   importFromGist: boolean;
   setImportFromGist: (value: boolean) => void;
   gistId: string | null;
@@ -34,7 +32,6 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
-  const [showHints, setShowHints] = useState(false);
   const [importFromGist, setImportFromGist] = useState(false);
   const [gistId, setGistIdState] = useState<string | null>(null);
 
@@ -177,10 +174,6 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
     [setImportFromGist]
   );
 
-  const toggleHints = useCallback(() => {
-    setShowHints(prev => !prev);
-  }, []);
-
   const value: QuestionContextValue = {
     questions,
     addQuestion,
@@ -190,8 +183,6 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
     syncFromGist: handleSyncFromGist,
     syncStatus,
     lastSynced,
-    showHints,
-    toggleHints,
     importFromGist,
     setImportFromGist,
     gistId,
