@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
 import type { Question, GistData, SyncStatus } from '@/types';
 import { nanoid } from 'nanoid';
 import {
@@ -77,22 +77,20 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
     init();
   }, []);
 
-  const debouncedSync = useMemo(
-    () => {
-      const timeoutRef = { current: null as ReturnType<typeof setTimeout> | null };
-      
-      return async (data: GistData) => {
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(async () => {
-          const result = await syncToGist(data, setSyncStatus);
-          if (result.success && result.gistId) {
-            saveGistId(result.gistId);
-            saveLastSynced(new Date().toISOString());
-            setLastSynced(new Date().toISOString());
-            setGistIdState(result.gistId);
-          }
-        }, 500);
-      };
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedSync = useCallback(
+    async (data: GistData) => {
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = setTimeout(async () => {
+        const result = await syncToGist(data, setSyncStatus);
+        if (result.success && result.gistId) {
+          saveGistId(result.gistId);
+          saveLastSynced(new Date().toISOString());
+          setLastSynced(new Date().toISOString());
+          setGistIdState(result.gistId);
+        }
+      }, 500);
     },
     []
   );
