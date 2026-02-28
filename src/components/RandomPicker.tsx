@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuestions } from '@/context/QuestionContext';
 import { TOP_INTERVIEW_150 } from '@/data/study-plan';
 import { Button } from '@/components/ui/button';
@@ -7,13 +7,18 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Radio01Icon, ExternalLink } from '@hugeicons/core-free-icons';
+import { normalizeQuestionUrl } from '@/lib/utils';
 
 export function RandomPicker() {
   const { questions } = useQuestions();
   const [pickedQuestion, setPickedQuestion] = useState<{ title: string; url: string } | null>(null);
 
-  const trackedUrls = new Set(questions.map(q => q.url));
-  const availableQuestions = TOP_INTERVIEW_150.filter(q => !trackedUrls.has(q.url));
+  const availableQuestions = useMemo(() => {
+    const trackedUrlsSet = new Set(questions.map(q => normalizeQuestionUrl(q.url)));
+    return TOP_INTERVIEW_150.filter(
+      q => !trackedUrlsSet.has(normalizeQuestionUrl(q.url))
+    );
+  }, [questions]);
 
   const pickRandom = () => {
     if (availableQuestions.length === 0) return;
@@ -89,18 +94,21 @@ export function RandomPicker() {
         <CardContent>
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-2">
-              {availableQuestions.map((question) => (
+              {availableQuestions.map((question) => {
+                const isSelected = pickedQuestion && normalizeQuestionUrl(pickedQuestion.url) === normalizeQuestionUrl(question.url);
+                return (
                 <a
                   key={question.url}
                   href={question.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors ${pickedQuestion?.url === question.url ? 'border-primary bg-primary/5' : ''}`}
+                  className={`flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors ${isSelected ? 'border-primary bg-primary/5' : ''}`}
                 >
                   <span className="text-sm">{question.title}</span>
                   <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-4 w-4 text-muted-foreground" />
                 </a>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         </CardContent>

@@ -107,3 +107,18 @@ export function debounce<T extends (...args: unknown[]) => unknown>(
     timeout = setTimeout(() => func(...args), wait);
   };
 }
+
+export function normalizeQuestionUrl(url: string): string {
+  try {
+    const urlObj = new URL(url);
+    const match = urlObj.pathname.match(/(\/problems\/[^/]+)/);
+    
+    if (match && match[1]) {
+      urlObj.pathname = match[1];
+    }
+    
+    return urlObj.toString();
+  } catch {
+    return url;
+  }
+}
