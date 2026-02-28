@@ -130,7 +130,7 @@ function LeetcodeTracker({ onOpenModal }: PageProps) {
   );
 }
 
-export function App() {
+function InnerApp() {
   const { addQuestion } = useQuestions();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [prefillData, setPrefillData] = useState<{ title: string; url: string } | null>(null);
@@ -147,20 +147,28 @@ export function App() {
   };
 
   return (
+    <>
+      <LeetcodeTracker onOpenModal={handleOpenModal} />
+      <AddQuestionModal
+        open={isModalOpen}
+        onOpenChange={(open) => {
+          if (!open) setPrefillData(null);
+          setIsModalOpen(open);
+        }}
+        onAdd={handleAddQuestion}
+        prefillData={prefillData}
+      >
+        <div />
+      </AddQuestionModal>
+    </>
+  );
+}
+
+export function App() {
+  return (
     <TooltipProvider>
       <QuestionProvider>
-        <LeetcodeTracker onOpenModal={handleOpenModal} />
-        <AddQuestionModal
-          open={isModalOpen}
-          onOpenChange={(open) => {
-            if (!open) setPrefillData(null);
-            setIsModalOpen(open);
-          }}
-          onAdd={handleAddQuestion}
-          prefillData={prefillData}
-        >
-          <div />
-        </AddQuestionModal>
+        <InnerApp />
       </QuestionProvider>
     </TooltipProvider>
   );
