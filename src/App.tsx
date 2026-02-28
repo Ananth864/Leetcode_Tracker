@@ -83,12 +83,12 @@ function TrackerPage({ onOpenModal }: PageProps) {
                 onSyncToGist={syncToGist}
                 onExportJSON={handleExportJSON}
               />
-              <ThemeToggle />
               <SettingsDialog>
                 <Button variant="outline" size="icon">
                   <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} className="h-5 w-5" />
                 </Button>
               </SettingsDialog>
+              <ThemeToggle />
             </div>
           </div>
 
