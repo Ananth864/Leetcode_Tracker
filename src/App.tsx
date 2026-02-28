@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { QuestionProvider, useQuestions } from '@/context/QuestionContext';
 import { QuestionTable } from '@/components/QuestionTable';
 import { AddQuestionModal } from '@/components/AddQuestionModal';
@@ -7,6 +8,8 @@ import { FilterControls } from '@/components/FilterControls';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncButton } from '@/components/SyncButton';
 import { Button } from '@/components/ui/button';
+import { Sidebar } from '@/components/Sidebar';
+import { RandomPicker } from '@/components/RandomPicker';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -14,7 +17,7 @@ import { PlusSignIcon, CodeIcon } from '@hugeicons/core-free-icons';
 import { filterQuestions, getAllTopics } from '@/lib/utils';
 import type { Progress } from '@/types';
 
-function LeetcodeTracker() {
+function TrackerPage() {
   const {
     questions,
     addQuestion,
@@ -55,7 +58,7 @@ function LeetcodeTracker() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 overflow-auto">
       <div className="container mx-auto p-6 max-w-7xl">
         <header className="mb-6">
           <div className="flex items-center justify-between mb-4">
@@ -108,6 +111,20 @@ function LeetcodeTracker() {
             onDelete={deleteQuestion}
           />
         </main>
+      </div>
+    </div>
+  );
+}
+
+function LeetcodeTracker() {
+  return (
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1">
+        <Routes>
+          <Route path="/" element={<TrackerPage />} />
+          <Route path="/random-picker" element={<RandomPicker />} />
+        </Routes>
       </div>
     </div>
   );
