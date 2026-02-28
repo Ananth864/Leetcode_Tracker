@@ -7,13 +7,14 @@ import { SearchBar } from '@/components/SearchBar';
 import { FilterControls } from '@/components/FilterControls';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { SyncButton } from '@/components/SyncButton';
+import { SettingsDialog } from '@/components/SettingsDialog';
 import { Button } from '@/components/ui/button';
 import { Sidebar } from '@/components/Sidebar';
 import { RandomPicker } from '@/components/RandomPicker';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { PlusSignIcon, CodeIcon } from '@hugeicons/core-free-icons';
+import { PlusSignIcon, CodeIcon, Settings01Icon } from '@hugeicons/core-free-icons';
 import { filterQuestions, getAllTopics } from '@/lib/utils';
 import type { Progress } from '@/types';
 
@@ -83,6 +84,11 @@ function TrackerPage({ onOpenModal }: PageProps) {
                 onExportJSON={handleExportJSON}
               />
               <ThemeToggle />
+              <SettingsDialog>
+                <Button variant="outline" size="icon">
+                  <HugeiconsIcon icon={Settings01Icon} strokeWidth={2} className="h-5 w-5" />
+                </Button>
+              </SettingsDialog>
             </div>
           </div>
 

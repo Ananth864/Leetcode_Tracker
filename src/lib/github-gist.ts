@@ -160,9 +160,9 @@ let gistClient: GitHubGistClient | null = null;
 
 export function getGistClient(): GitHubGistClient {
   if (!gistClient) {
-    const token = import.meta.env.VITE_GITHUB_TOKEN;
+    const token = import.meta.env.VITE_GITHUB_TOKEN || localStorage.getItem('GITHUB_TOKEN');
     if (!token) {
-      throw new Error('VITE_GITHUB_TOKEN environment variable is not set. Please add your GitHub personal access token to your .env file.');
+      throw new Error('GitHub token not found. Please add it in Settings.');
     }
     gistClient = new GitHubGistClient(token);
   }
