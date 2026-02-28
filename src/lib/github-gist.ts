@@ -160,7 +160,10 @@ let gistClient: GitHubGistClient | null = null;
 
 export function getGistClient(): GitHubGistClient {
   if (!gistClient) {
-    const token = import.meta.env.VITE_GITHUB_TOKEN || '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';
+    const token = import.meta.env.VITE_GITHUB_TOKEN;
+    if (!token) {
+      throw new Error('VITE_GITHUB_TOKEN environment variable is not set. Please add your GitHub personal access token to your .env file.');
+    }
     gistClient = new GitHubGistClient(token);
   }
   return gistClient;
