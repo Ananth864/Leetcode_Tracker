@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
   Select,
   SelectContent,
@@ -21,6 +22,7 @@ import {
 } from '@/components/ui/select';
 import { TopicSelector } from './TopicSelector';
 import { extractQuestionTitle } from '@/lib/utils';
+import { TOP_INTERVIEW_150 } from '@/data/study-plan';
 import type { Progress } from '@/types';
 import type { ReactNode } from 'react';
 
@@ -49,6 +51,14 @@ export function AddQuestionModal({
   const [topics, setTopics] = useState<string[]>([]);
   const [hints, setHints] = useState<[string, string, string]>(['', '', '']);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    return TOP_INTERVIEW_150.filter(q =>
+      q.title.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }, [searchQuery]);
 
   const handleUrlBlur = () => {
     if (url && !title) {
@@ -57,6 +67,12 @@ export function AddQuestionModal({
         setTitle(extractedTitle);
       }
     }
+  };
+
+  const handleSelectQuestion = (question: { title: string; url: string }) => {
+    setUrl(question.url);
+    setTitle(question.title);
+    setSearchQuery('');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,6 +97,7 @@ export function AddQuestionModal({
       setProgress('red');
       setTopics([]);
       setHints(['', '', '']);
+      setSearchQuery('');
       onOpenChange?.(false);
     } catch (error) {
       console.error('Failed to add question:', error);
@@ -90,7 +107,12 @@ export function AddQuestionModal({
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) {
+        setSearchQuery('');
+      }
+      onOpenChange?.(isOpen);
+    }}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
@@ -101,6 +123,38 @@ export function AddQuestionModal({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="search">Search Top Interview 150</Label>
+            <Input
+              id="search"
+              type="text"
+              placeholder="Search for a question..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            {searchResults.length > 0 && (
+              <div className="border rounded-md">
+                <ScrollArea className="max-h-48">
+                  <div className="p-1">
+                    {searchResults.map((question) => (
+                      <button
+                        key={question.url}
+                        type="button"
+                        onClick={() => handleSelectQuestion(question)}
+                        className="w-full text-left px-3 py-2 text-sm rounded-md hover:bg-accent transition-colors"
+                      >
+                        {question.title}
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
+            {searchQuery.trim() && searchResults.length === 0 && (
+              <p className="text-sm text-muted-foreground">No questions found</p>
+            )}
+          </div>
+
           <div className="space-y-2">
             <Label htmlFor="url">Question URL</Label>
             <Input
