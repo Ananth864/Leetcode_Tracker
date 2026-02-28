@@ -6,10 +6,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Radio01Icon, ExternalLink } from '@hugeicons/core-free-icons';
+import { Radio01Icon, ExternalLink, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { normalizeQuestionUrl } from '@/lib/utils';
 
-export function RandomPicker() {
+interface RandomPickerProps {
+  onOpenModal?: (prefill?: { title: string; url: string }) => void;
+}
+
+export function RandomPicker({ onOpenModal }: RandomPickerProps) {
   const { questions } = useQuestions();
   const [pickedQuestion, setPickedQuestion] = useState<{ title: string; url: string } | null>(null);
 
@@ -59,7 +63,7 @@ export function RandomPicker() {
             </CardTitle>
             <CardDescription>Click the button to try a different question</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             <a
               href={pickedQuestion.url}
               target="_blank"
@@ -69,6 +73,12 @@ export function RandomPicker() {
               <span className="text-lg font-medium">{pickedQuestion.title}</span>
               <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-5 w-5 text-muted-foreground" />
             </a>
+            {onOpenModal && (
+              <Button onClick={() => onOpenModal(pickedQuestion)} className="w-full">
+                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
+                Add to Tracker
+              </Button>
+            )}
           </CardContent>
         </Card>
       )}
@@ -97,16 +107,39 @@ export function RandomPicker() {
               {availableQuestions.map((question) => {
                 const isSelected = pickedQuestion && normalizeQuestionUrl(pickedQuestion.url) === normalizeQuestionUrl(question.url);
                 return (
-                <a
+                <div
                   key={question.url}
-                  href={question.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
                   className={`flex items-center justify-between p-3 rounded-lg border hover:bg-accent transition-colors ${isSelected ? 'border-primary bg-primary/5' : ''}`}
                 >
-                  <span className="text-sm">{question.title}</span>
-                  <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-4 w-4 text-muted-foreground" />
-                </a>
+                  <a
+                    href={question.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-sm hover:text-primary transition-colors"
+                  >
+                    {question.title}
+                  </a>
+                  <div className="flex items-center gap-2">
+                    <a
+                      href={question.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-1 rounded hover:bg-accent transition-colors"
+                    >
+                      <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-4 w-4 text-muted-foreground" />
+                    </a>
+                    {onOpenModal && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => onOpenModal(question)}
+                        className="h-7 px-2"
+                      >
+                        <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
                 );
               })}
             </div>

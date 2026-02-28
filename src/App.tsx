@@ -17,10 +17,13 @@ import { PlusSignIcon, CodeIcon } from '@hugeicons/core-free-icons';
 import { filterQuestions, getAllTopics } from '@/lib/utils';
 import type { Progress } from '@/types';
 
-function TrackerPage() {
+interface PageProps {
+  onOpenModal: (prefill?: { title: string; url: string }) => void;
+}
+
+function TrackerPage({ onOpenModal }: PageProps) {
   const {
     questions,
-    addQuestion,
     updateQuestion,
     deleteQuestion,
     syncToGist,
@@ -31,7 +34,6 @@ function TrackerPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [progressFilter, setProgressFilter] = useState<Progress | 'all'>('all');
   const [topicFilter, setTopicFilter] = useState<string | 'all'>('all');
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredQuestions = filterQuestions(
     questions,
@@ -95,12 +97,10 @@ function TrackerPage() {
                 availableTopics={availableTopics}
               />
             </div>
-            <AddQuestionModal open={isModalOpen} onOpenChange={setIsModalOpen} onAdd={addQuestion}>
-              <Button onClick={() => setIsModalOpen(true)}>
-                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
-                Add Question
-              </Button>
-            </AddQuestionModal>
+            <Button onClick={() => onOpenModal()}>
+              <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
+              Add Question
+            </Button>
           </div>
         </header>
 
@@ -116,14 +116,14 @@ function TrackerPage() {
   );
 }
 
-function LeetcodeTracker() {
+function LeetcodeTracker({ onOpenModal }: PageProps) {
   return (
     <div className="flex min-h-screen bg-background">
       <Sidebar />
       <div className="flex-1">
         <Routes>
-          <Route path="/" element={<TrackerPage />} />
-          <Route path="/random-picker" element={<RandomPicker />} />
+          <Route path="/" element={<TrackerPage onOpenModal={onOpenModal} />} />
+          <Route path="/random-picker" element={<RandomPicker onOpenModal={onOpenModal} />} />
         </Routes>
       </div>
     </div>
@@ -131,10 +131,36 @@ function LeetcodeTracker() {
 }
 
 export function App() {
+  const { addQuestion } = useQuestions();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [prefillData, setPrefillData] = useState<{ title: string; url: string } | null>(null);
+
+  const handleAddQuestion = async (question: Omit<import('@/types').Question, 'id' | 'createdAt'>) => {
+    await addQuestion(question);
+  };
+
+  const handleOpenModal = (prefill?: { title: string; url: string }) => {
+    if (prefill) {
+      setPrefillData(prefill);
+    }
+    setIsModalOpen(true);
+  };
+
   return (
     <TooltipProvider>
       <QuestionProvider>
-        <LeetcodeTracker />
+        <LeetcodeTracker onOpenModal={handleOpenModal} />
+        <AddQuestionModal
+          open={isModalOpen}
+          onOpenChange={(open) => {
+            if (!open) setPrefillData(null);
+            setIsModalOpen(open);
+          }}
+          onAdd={handleAddQuestion}
+          prefillData={prefillData}
+        >
+          <div />
+        </AddQuestionModal>
       </QuestionProvider>
     </TooltipProvider>
   );
