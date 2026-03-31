@@ -10,9 +10,9 @@ export const questionSchema = z.object({
   progress: progressEnum,
   topics: z.array(z.string()),
   hints: z.tuple([
-    z.string().optional(),
-    z.string().optional(),
-    z.string().optional(),
+    z.string().nullable().optional(),
+    z.string().nullable().optional(),
+    z.string().nullable().optional(),
   ]),
   createdAt: z.string(),
 }) satisfies z.ZodType<Question>;

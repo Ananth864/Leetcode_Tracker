@@ -2,7 +2,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Badge } from '@/components/ui/badge';
 
 interface HintsCellProps {
-  hints: [string?, string?, string?];
+  hints: [(string | null)?, (string | null)?, (string | null)?];
 }
 
 export function HintsCell({ hints }: HintsCellProps) {

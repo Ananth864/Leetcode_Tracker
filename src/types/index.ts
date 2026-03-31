@@ -6,7 +6,7 @@ export interface Question {
   url: string;
   progress: Progress;
   topics: string[];
-  hints: [string?, string?, string?];
+  hints: [(string | null)?, (string | null)?, (string | null)?];
   createdAt: string;
 }
 
