@@ -128,8 +128,8 @@ function LeetcodeTracker({ onOpenModal }: PageProps) {
       <Sidebar />
       <div className="flex-1">
         <Routes>
-          <Route path="/" element={<TrackerPage onOpenModal={onOpenModal} />} />
-          <Route path="/random-picker" element={<RandomPicker onOpenModal={onOpenModal} />} />
+          <Route path="/" element={<RandomPicker onOpenModal={onOpenModal} />} />
+          <Route path="/tracker" element={<TrackerPage onOpenModal={onOpenModal} />} />
         </Routes>
       </div>
     </div>

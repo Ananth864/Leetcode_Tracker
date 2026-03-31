@@ -4,8 +4,8 @@ import { Table01Icon, Radio01Icon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { to: '/', icon: Table01Icon, label: 'Tracker' },
-  { to: '/random-picker', icon: Radio01Icon, label: 'Random Picker' },
+  { to: '/', icon: Radio01Icon, label: 'Random Picker' },
+  { to: '/tracker', icon: Table01Icon, label: 'Tracker' },
 ];
 
 export function Sidebar() {

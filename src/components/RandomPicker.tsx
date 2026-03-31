@@ -63,22 +63,37 @@ export function RandomPicker({ onOpenModal }: RandomPickerProps) {
             </CardTitle>
             <CardDescription>Click the button to try a different question</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <a
-              href={pickedQuestion.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent transition-colors"
-            >
-              <span className="text-lg font-medium">{pickedQuestion.title}</span>
-              <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-5 w-5 text-muted-foreground" />
-            </a>
-            {onOpenModal && (
-              <Button onClick={() => onOpenModal(pickedQuestion)} className="w-full">
-                <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4 mr-2" />
-                Add to Tracker
-              </Button>
-            )}
+          <CardContent>
+            <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+              <a
+                href={pickedQuestion.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 text-lg font-medium hover:text-primary transition-colors"
+              >
+                {pickedQuestion.title}
+              </a>
+              <div className="flex items-center gap-2">
+                <a
+                  href={pickedQuestion.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="p-1 rounded hover:bg-accent transition-colors"
+                >
+                  <HugeiconsIcon icon={ExternalLink} strokeWidth={2} className="h-5 w-5 text-muted-foreground" />
+                </a>
+                {onOpenModal && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => onOpenModal(pickedQuestion)}
+                    className="h-7 px-2"
+                  >
+                    <HugeiconsIcon icon={PlusSignIcon} strokeWidth={2} className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+            </div>
           </CardContent>
         </Card>
       )}
