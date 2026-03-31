@@ -13,14 +13,18 @@ import type { SyncStatus } from '@/types';
 interface SyncButtonProps {
   syncStatus: SyncStatus;
   lastSynced: string | null;
+  gistId: string | null;
   onSyncToGist: () => void;
+  onSyncFromGist: (gistId: string) => void;
   onExportJSON: () => void;
 }
 
 export function SyncButton({
   syncStatus,
   lastSynced,
+  gistId,
   onSyncToGist,
+  onSyncFromGist,
   onExportJSON,
 }: SyncButtonProps) {
   const getStatusIcon = () => {
@@ -49,6 +53,10 @@ export function SyncButton({
         <DropdownMenuItem onClick={onSyncToGist} disabled={syncStatus === 'syncing'}>
           <HugeiconsIcon icon={Upload03Icon} strokeWidth={2} className="h-4 w-4 mr-2" />
           Backup to Gist
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={() => gistId && onSyncFromGist(gistId)} disabled={syncStatus === 'syncing' || !gistId}>
+          <HugeiconsIcon icon={Download03Icon} strokeWidth={2} className="h-4 w-4 mr-2" />
+          Reload from Gist
         </DropdownMenuItem>
         <DropdownMenuItem onClick={onExportJSON}>
           <HugeiconsIcon icon={Download03Icon} strokeWidth={2} className="h-4 w-4 mr-2" />

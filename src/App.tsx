@@ -28,8 +28,10 @@ function TrackerPage({ onOpenModal }: PageProps) {
     updateQuestion,
     deleteQuestion,
     syncToGist,
+    syncFromGist,
     syncStatus,
     lastSynced,
+    gistId,
   } = useQuestions();
 
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,7 +82,9 @@ function TrackerPage({ onOpenModal }: PageProps) {
               <SyncButton
                 syncStatus={syncStatus}
                 lastSynced={lastSynced}
+                gistId={gistId}
                 onSyncToGist={syncToGist}
+                onSyncFromGist={syncFromGist}
                 onExportJSON={handleExportJSON}
               />
               <SettingsDialog>
