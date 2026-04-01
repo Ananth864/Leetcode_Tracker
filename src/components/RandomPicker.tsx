@@ -8,6 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Radio01Icon, ExternalLink, PlusSignIcon } from '@hugeicons/core-free-icons';
 import { normalizeQuestionUrl } from '@/lib/utils';
+import { SearchBar } from '@/components/SearchBar';
 
 interface RandomPickerProps {
   onOpenModal?: (prefill?: { title: string; url: string }) => void;
@@ -16,6 +17,7 @@ interface RandomPickerProps {
 export function RandomPicker({ onOpenModal }: RandomPickerProps) {
   const { questions } = useQuestions();
   const [pickedQuestion, setPickedQuestion] = useState<{ title: string; url: string } | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const availableQuestions = useMemo(() => {
     const trackedUrlsSet = new Set(questions.map(q => normalizeQuestionUrl(q.url)));
@@ -23,6 +25,12 @@ export function RandomPicker({ onOpenModal }: RandomPickerProps) {
       q => !trackedUrlsSet.has(normalizeQuestionUrl(q.url))
     );
   }, [questions]);
+
+  const filteredQuestions = useMemo(() => {
+    if (!searchTerm.trim()) return availableQuestions;
+    const term = searchTerm.toLowerCase();
+    return availableQuestions.filter(q => q.title.toLowerCase().includes(term));
+  }, [availableQuestions, searchTerm]);
 
   const pickRandom = () => {
     if (availableQuestions.length === 0) return;
@@ -117,9 +125,12 @@ export function RandomPicker({ onOpenModal }: RandomPickerProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <div className="mb-3">
+            <SearchBar value={searchTerm} onChange={setSearchTerm} />
+          </div>
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-2">
-              {availableQuestions.map((question) => {
+              {filteredQuestions.map((question) => {
                 const isSelected = pickedQuestion && normalizeQuestionUrl(pickedQuestion.url) === normalizeQuestionUrl(question.url);
                 return (
                 <div
