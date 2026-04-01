@@ -27,7 +27,7 @@ export function QuestionTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[30%]">Question</TableHead>
-            <TableHead className="w-[15%]">Progress</TableHead>
+            <TableHead className="w-[15%]">Revisit Priority</TableHead>
             <TableHead className="w-[35%]">Topics</TableHead>
             <TableHead className="w-[15%]">Hints</TableHead>
             <TableHead className="w-[5%] text-right"></TableHead>
