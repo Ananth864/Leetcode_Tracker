@@ -14,12 +14,14 @@ interface QuestionTableProps {
   questions: Question[];
   onProgressChange: (id: string, progress: Progress) => void;
   onDelete: (id: string) => void;
+  onTopicsChange: (id: string, topics: string[]) => void;
 }
 
 export function QuestionTable({
   questions,
   onProgressChange,
   onDelete,
+  onTopicsChange,
 }: QuestionTableProps) {
   return (
     <ScrollArea className="h-[calc(100vh-280px)]">
@@ -47,6 +49,7 @@ export function QuestionTable({
                 question={question}
                 onProgressChange={onProgressChange}
                 onDelete={onDelete}
+                onTopicsChange={onTopicsChange}
               />
             ))
           )}

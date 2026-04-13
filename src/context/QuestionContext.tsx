@@ -45,32 +45,39 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         setQuestions(savedQuestions);
       }
 
-      if (savedGistId) {
-        setGistIdState(savedGistId);
-      } else {
+      if (savedLastSynced) {
+        setLastSynced(savedLastSynced);
+      }
+
+      try {
         const { getGistClient } = await import('@/lib/github-gist');
         const client = getGistClient();
-        const existingGists = await client.listGists();
 
-        if (existingGists.length > 0) {
-          const gistId = existingGists[0].id;
-          const result = await syncFromGist(gistId, setSyncStatus);
+        let gistIdToLoad = savedGistId;
+
+        if (!gistIdToLoad) {
+          const existingGists = await client.listGists();
+          if (existingGists.length > 0) {
+            gistIdToLoad = existingGists[0].id;
+          }
+        }
+
+        if (gistIdToLoad) {
+          const result = await syncFromGist(gistIdToLoad, setSyncStatus);
           if (result.success && result.data) {
             const sortedQuestions = sortQuestions(result.data.questions);
             setQuestions(sortedQuestions);
             saveQuestions(sortedQuestions);
-            setGistIdState(gistId);
-            saveGistId(gistId);
+            setGistIdState(gistIdToLoad);
+            saveGistId(gistIdToLoad);
             if (result.data.lastSynced) {
               setLastSynced(result.data.lastSynced);
               saveLastSynced(result.data.lastSynced);
             }
           }
         }
-      }
-
-      if (savedLastSynced) {
-        setLastSynced(savedLastSynced);
+      } catch {
+        // Silently fall back to local data if gist load fails
       }
     };
 

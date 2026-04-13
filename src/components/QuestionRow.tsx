@@ -1,8 +1,14 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import type { Question, Progress } from '@/types';
 import { ProgressCell } from './ProgressCell';
 import { HintsCell } from './HintsCell';
+import { TopicSelector } from './TopicSelector';
 import { Badge } from '@/components/ui/badge';
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,10 +28,12 @@ interface QuestionRowProps {
   question: Question;
   onProgressChange: (id: string, progress: Progress) => void;
   onDelete: (id: string) => void;
+  onTopicsChange: (id: string, topics: string[]) => void;
 }
 
 export const QuestionRow = memo(
-  function QuestionRow({ question, onProgressChange, onDelete }: QuestionRowProps) {
+  function QuestionRow({ question, onProgressChange, onDelete, onTopicsChange }: QuestionRowProps) {
+    const [topicsOpen, setTopicsOpen] = useState(false);
     return (
       <tr className="border-b border-border hover:bg-muted/50 transition-colors">
         <td className="py-3 px-4">
@@ -45,13 +53,27 @@ export const QuestionRow = memo(
           />
         </td>
         <td className="py-3 px-4">
-          <div className="flex flex-wrap gap-1">
-            {question.topics.map((topic) => (
-              <Badge key={topic} variant="secondary" className="text-xs">
-                {topic}
-              </Badge>
-            ))}
-          </div>
+          <Popover open={topicsOpen} onOpenChange={setTopicsOpen}>
+            <PopoverTrigger asChild>
+              <button className="flex flex-wrap gap-1 cursor-pointer text-left">
+                {question.topics.length > 0 ? (
+                  question.topics.map((topic) => (
+                    <Badge key={topic} variant="secondary" className="text-xs">
+                      {topic}
+                    </Badge>
+                  ))
+                ) : (
+                  <span className="text-xs text-muted-foreground">+ Add topics</span>
+                )}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-64 p-2" align="start">
+              <TopicSelector
+                selectedTopics={question.topics}
+                onTopicsChange={(topics) => onTopicsChange(question.id, topics)}
+              />
+            </PopoverContent>
+          </Popover>
         </td>
         <td className="py-3 px-4">
           <HintsCell hints={question.hints} />

@@ -51,6 +51,10 @@ function TrackerPage({ onOpenModal }: PageProps) {
     updateQuestion(id, { progress });
   };
 
+  const handleTopicsChange = (id: string, topics: string[]) => {
+    updateQuestion(id, { topics });
+  };
+
   const handleExportJSON = () => {
     const data = JSON.stringify(questions, null, 2);
     const blob = new Blob([data], { type: 'application/json' });
@@ -119,6 +123,7 @@ function TrackerPage({ onOpenModal }: PageProps) {
             questions={filteredQuestions}
             onProgressChange={handleProgressChange}
             onDelete={deleteQuestion}
+            onTopicsChange={handleTopicsChange}
           />
         </main>
       </div>
