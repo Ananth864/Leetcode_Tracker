@@ -1,22 +1,28 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef, type ReactNode } from 'react';
-import type { Question, GistData, SyncStatus } from '@/types';
+import type { Question, Note, GistData, SyncStatus } from '@/types';
 import { nanoid } from 'nanoid';
 import {
   loadQuestions,
   saveQuestions,
+  loadNotes,
+  saveNotes,
   loadGistId,
   saveGistId,
   saveLastSynced,
   loadLastSynced,
 } from '@/lib/storage';
 import { syncToGist, syncFromGist } from '@/lib/github-gist';
-import { sortQuestions } from '@/lib/utils';
+import { sortQuestions, sortNotes } from '@/lib/utils';
 
 interface QuestionContextValue {
   questions: Question[];
   addQuestion: (question: Omit<Question, 'id' | 'createdAt'>) => Promise<void>;
   updateQuestion: (id: string, updates: Partial<Question>) => Promise<void>;
   deleteQuestion: (id: string) => Promise<void>;
+  notes: Note[];
+  addNote: (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Note | null>;
+  updateNote: (id: string, updates: Partial<Note>) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
   syncToGist: () => Promise<void>;
   syncFromGist: (gistId: string) => Promise<void>;
   syncStatus: SyncStatus;
@@ -30,19 +36,33 @@ const QuestionContext = createContext<QuestionContextValue | undefined>(undefine
 
 export function QuestionProvider({ children }: { children: ReactNode }) {
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
   const [lastSynced, setLastSynced] = useState<string | null>(null);
   const [importFromGist, setImportFromGist] = useState(false);
   const [gistId, setGistIdState] = useState<string | null>(null);
 
+  const questionsRef = useRef<Question[]>([]);
+  const notesRef = useRef<Note[]>([]);
+  const gistIdRef = useRef<string | null>(null);
+
+  questionsRef.current = questions;
+  notesRef.current = notes;
+  gistIdRef.current = gistId;
+
   useEffect(() => {
     const init = async () => {
       const savedQuestions = loadQuestions();
+      const savedNotes = loadNotes();
       const savedGistId = loadGistId();
       const savedLastSynced = loadLastSynced();
 
       if (savedQuestions) {
         setQuestions(savedQuestions);
+      }
+
+      if (savedNotes) {
+        setNotes(savedNotes);
       }
 
       if (savedLastSynced) {
@@ -68,6 +88,11 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
             const sortedQuestions = sortQuestions(result.data.questions);
             setQuestions(sortedQuestions);
             saveQuestions(sortedQuestions);
+            if (result.data.notes) {
+              const sortedNotes = sortNotes(result.data.notes);
+              setNotes(sortedNotes);
+              saveNotes(sortedNotes);
+            }
             setGistIdState(gistIdToLoad);
             saveGistId(gistIdToLoad);
             if (result.data.lastSynced) {
@@ -86,9 +111,19 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
 
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const buildGistData = useCallback((): GistData => {
+    return {
+      questions: questionsRef.current,
+      notes: notesRef.current,
+      lastSynced: new Date().toISOString(),
+      gistId: gistIdRef.current || loadGistId() || undefined,
+    };
+  }, []);
+
   const debouncedSync = useCallback(
-    async (data: GistData) => {
+    async () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      const data = buildGistData();
       debounceTimeoutRef.current = setTimeout(async () => {
         const result = await syncToGist(data, setSyncStatus);
         if (result.success && result.gistId) {
@@ -99,7 +134,7 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         }
       }, 500);
     },
-    []
+    [buildGistData]
   );
 
   const addQuestion = useCallback(
@@ -110,68 +145,89 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         createdAt: new Date().toISOString(),
       };
 
-      const updatedQuestions = sortQuestions([...questions, newQuestion]);
+      const updatedQuestions = sortQuestions([...questionsRef.current, newQuestion]);
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
 
-      const currentGistId = gistId || loadGistId();
-      const data: GistData = {
-        questions: updatedQuestions,
-        lastSynced: new Date().toISOString(),
-        gistId: currentGistId || undefined,
-      };
-
-      await debouncedSync(data);
+      await debouncedSync();
     },
-    [questions, gistId, debouncedSync]
+    [debouncedSync]
   );
 
   const updateQuestion = useCallback(
     async (id: string, updates: Partial<Question>) => {
-      const updatedQuestions = questions.map(q =>
+      const updatedQuestions = questionsRef.current.map((q) =>
         q.id === id ? { ...q, ...updates } : q
       );
       const sortedQuestions = sortQuestions(updatedQuestions);
       setQuestions(sortedQuestions);
       saveQuestions(sortedQuestions);
 
-      const currentGistId = gistId || loadGistId();
-      const data: GistData = {
-        questions: sortedQuestions,
-        lastSynced: new Date().toISOString(),
-        gistId: currentGistId || undefined,
-      };
-
-      await debouncedSync(data);
+      await debouncedSync();
     },
-    [questions, gistId, debouncedSync]
+    [debouncedSync]
   );
 
   const deleteQuestion = useCallback(
     async (id: string) => {
-      const updatedQuestions = questions.filter(q => q.id !== id);
+      const updatedQuestions = questionsRef.current.filter((q) => q.id !== id);
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
 
-      const currentGistId = gistId || loadGistId();
-      const data: GistData = {
-        questions: updatedQuestions,
-        lastSynced: new Date().toISOString(),
-        gistId: currentGistId || undefined,
+      await debouncedSync();
+    },
+    [debouncedSync]
+  );
+
+  const addNote = useCallback(
+    async (note: Omit<Note, 'id' | 'createdAt' | 'updatedAt'>) => {
+      const now = new Date().toISOString();
+      const newNote: Note = {
+        ...note,
+        id: nanoid(),
+        createdAt: now,
+        updatedAt: now,
       };
 
-      await debouncedSync(data);
+      const updatedNotes = sortNotes([...notesRef.current, newNote]);
+      setNotes(updatedNotes);
+      saveNotes(updatedNotes);
+
+      await debouncedSync();
+      return newNote;
     },
-    [questions, gistId, debouncedSync]
+    [debouncedSync]
+  );
+
+  const updateNote = useCallback(
+    async (id: string, updates: Partial<Note>) => {
+      const updatedNotes = notesRef.current.map((n) =>
+        n.id === id
+          ? { ...n, ...updates, updatedAt: new Date().toISOString() }
+          : n
+      );
+      const sortedNotes = sortNotes(updatedNotes);
+      setNotes(sortedNotes);
+      saveNotes(sortedNotes);
+
+      await debouncedSync();
+    },
+    [debouncedSync]
+  );
+
+  const deleteNote = useCallback(
+    async (id: string) => {
+      const updatedNotes = notesRef.current.filter((n) => n.id !== id);
+      setNotes(updatedNotes);
+      saveNotes(updatedNotes);
+
+      await debouncedSync();
+    },
+    [debouncedSync]
   );
 
   const handleSyncToGist = useCallback(async () => {
-    const currentGistId = gistId || loadGistId();
-    const data: GistData = {
-      questions,
-      lastSynced: new Date().toISOString(),
-      gistId: currentGistId || undefined,
-    };
+    const data = buildGistData();
 
     const result = await syncToGist(data, setSyncStatus);
     if (result.success && result.gistId) {
@@ -180,7 +236,7 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
       setLastSynced(new Date().toISOString());
       setGistIdState(result.gistId);
     }
-  }, [questions, gistId]);
+  }, [buildGistData]);
 
   const handleSyncFromGist = useCallback(
     async (newGistId: string) => {
@@ -189,6 +245,11 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         const sortedQuestions = sortQuestions(result.data.questions);
         setQuestions(sortedQuestions);
         saveQuestions(sortedQuestions);
+        if (result.data.notes) {
+          const sortedNotes = sortNotes(result.data.notes);
+          setNotes(sortedNotes);
+          saveNotes(sortedNotes);
+        }
         saveGistId(newGistId);
         saveLastSynced(new Date().toISOString());
         setLastSynced(new Date().toISOString());
@@ -204,6 +265,10 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
     addQuestion,
     updateQuestion,
     deleteQuestion,
+    notes,
+    addNote,
+    updateNote,
+    deleteNote,
     syncToGist: handleSyncToGist,
     syncFromGist: handleSyncFromGist,
     syncStatus,
@@ -222,4 +287,13 @@ export function useQuestions() {
     throw new Error('useQuestions must be used within QuestionProvider');
   }
   return context;
+}
+
+export function useNotes() {
+  const context = useContext(QuestionContext);
+  if (!context) {
+    throw new Error('useNotes must be used within QuestionProvider');
+  }
+  const { notes, addNote, updateNote, deleteNote } = context;
+  return { notes, addNote, updateNote, deleteNote };
 }

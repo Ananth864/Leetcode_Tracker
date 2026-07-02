@@ -1,11 +1,12 @@
 import { NavLink } from 'react-router-dom';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { Table01Icon, Radio01Icon } from '@hugeicons/core-free-icons';
+import { Table01Icon, Radio01Icon, NoteEditIcon } from '@hugeicons/core-free-icons';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/', icon: Radio01Icon, label: 'Random Picker' },
   { to: '/tracker', icon: Table01Icon, label: 'Tracker' },
+  { to: '/notes', icon: NoteEditIcon, label: 'Notes' },
 ];
 
 export function Sidebar() {

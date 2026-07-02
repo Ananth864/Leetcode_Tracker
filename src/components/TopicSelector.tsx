@@ -16,12 +16,13 @@ import { DEFAULT_TOPICS } from '@/data/topics';
 interface TopicSelectorProps {
   selectedTopics: string[];
   onTopicsChange: (topics: string[]) => void;
+  defaultTags?: readonly string[];
 }
 
-export function TopicSelector({ selectedTopics, onTopicsChange }: TopicSelectorProps) {
+export function TopicSelector({ selectedTopics, onTopicsChange, defaultTags }: TopicSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
 
-  const allTopics = [...DEFAULT_TOPICS];
+  const allTopics = [...(defaultTags ?? DEFAULT_TOPICS)];
   const selectedTopicsSet = new Set(selectedTopics);
 
   const filteredTopics = allTopics.filter((topic) =>

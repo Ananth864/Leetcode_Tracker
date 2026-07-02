@@ -1,0 +1,15 @@
+export const DEFAULT_NOTE_TAGS = [
+  'Array',
+  'String',
+  'Hash Map',
+  'Linked List',
+  'Stack',
+  'Queue',
+  'Deque',
+  'Tree',
+  'BST',
+  'Trie',
+  'Heap',
+  'Graph',
+  'Matrix',
+] as const;

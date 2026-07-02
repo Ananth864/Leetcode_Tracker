@@ -11,6 +11,7 @@ import { SettingsDialog } from '@/components/SettingsDialog';
 import { Button } from '@/components/ui/button';
 import { Sidebar } from '@/components/Sidebar';
 import { RandomPicker } from '@/components/RandomPicker';
+import { NotesPage } from '@/components/notes/NotesPage';
 
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { HugeiconsIcon } from '@hugeicons/react';
@@ -139,6 +140,7 @@ function LeetcodeTracker({ onOpenModal }: PageProps) {
         <Routes>
           <Route path="/" element={<RandomPicker onOpenModal={onOpenModal} />} />
           <Route path="/tracker" element={<TrackerPage onOpenModal={onOpenModal} />} />
+          <Route path="/notes" element={<NotesPage />} />
         </Routes>
       </div>
     </div>

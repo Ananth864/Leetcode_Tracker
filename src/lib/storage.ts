@@ -1,8 +1,9 @@
-import type { Question } from '@/types';
-import { gistDataSchema } from './schema';
+import type { Question, Note } from '@/types';
+import { gistDataSchema, notesArraySchema } from './schema';
 
 const STORAGE_KEYS = {
   QUESTIONS: 'leetcode-tracker-questions',
+  NOTES: 'leetcode-tracker-notes',
   GIST_ID: 'leetcode-tracker-gist-id',
   LAST_SYNCED: 'leetcode-tracker-last-synced',
   THEME: 'leetcode-tracker-theme',
@@ -20,18 +21,46 @@ export function loadQuestions(): Question[] | null {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
     if (!data) return null;
-    
+
     const parsed = JSON.parse(data);
     const result = gistDataSchema.shape.questions.safeParse(parsed);
-    
+
     if (result.success) {
       return result.data;
     }
-    
+
     console.error('Invalid questions data in localStorage:', result.error);
     return null;
   } catch (error) {
     console.error('Failed to load questions from localStorage:', error);
+    return null;
+  }
+}
+
+export function saveNotes(notes: Note[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.NOTES, JSON.stringify(notes));
+  } catch (error) {
+    console.error('Failed to save notes to localStorage:', error);
+  }
+}
+
+export function loadNotes(): Note[] | null {
+  try {
+    const data = localStorage.getItem(STORAGE_KEYS.NOTES);
+    if (!data) return null;
+
+    const parsed = JSON.parse(data);
+    const result = notesArraySchema.safeParse(parsed);
+
+    if (result.success) {
+      return result.data;
+    }
+
+    console.error('Invalid notes data in localStorage:', result.error);
+    return null;
+  } catch (error) {
+    console.error('Failed to load notes from localStorage:', error);
     return null;
   }
 }

@@ -10,8 +10,20 @@ export interface Question {
   createdAt: string;
 }
 
+export interface Note {
+  id: string;
+  title: string;
+  body: string;
+  tags: string[];
+  createdAt: string;
+  updatedAt: string;
+  pinned: boolean;
+  sourceUrl?: string;
+}
+
 export interface GistData {
   questions: Question[];
+  notes?: Note[];
   lastSynced: string;
   gistId?: string;
 }

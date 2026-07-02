@@ -1,6 +1,6 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { Question, ProgressOrder, Progress } from '@/types';
+import type { Question, Note, ProgressOrder, Progress } from '@/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -112,13 +112,71 @@ export function normalizeQuestionUrl(url: string): string {
   try {
     const urlObj = new URL(url);
     const match = urlObj.pathname.match(/(\/problems\/[^/]+)/);
-    
+
     if (match && match[1]) {
       urlObj.pathname = match[1];
     }
-    
+
     return urlObj.toString();
   } catch {
     return url;
   }
+}
+
+export type NoteSegment = { type: 'code' | 'text'; content: string };
+
+export function renderFences(body: string): NoteSegment[] {
+  if (!body) return [];
+  const parts = body.split('```');
+  const segments: NoteSegment[] = [];
+
+  parts.forEach((part, idx) => {
+    if (idx % 2 === 0) {
+      if (part.trim()) {
+        segments.push({ type: 'text', content: part });
+      }
+    } else {
+      const trimmed = part.replace(/^\n/, '').replace(/\n+$/, '');
+      const langMatch = trimmed.match(/^[a-zA-Z0-9_+-]*\n/);
+      const code = langMatch ? trimmed.slice(langMatch[0].length) : trimmed;
+      if (code.trim()) {
+        segments.push({ type: 'code', content: code });
+      }
+    }
+  });
+
+  return segments;
+}
+
+export function filterNotes(
+  notes: Note[],
+  searchTerm: string,
+  selectedTags: string[]
+): Note[] {
+  const term = searchTerm.trim().toLowerCase();
+  return notes.filter((note) => {
+    const matchesTags =
+      selectedTags.length === 0 ||
+      selectedTags.every((tag) => note.tags.includes(tag));
+    if (!matchesTags) return false;
+    if (!term) return true;
+    return (
+      note.title.toLowerCase().includes(term) ||
+      note.body.toLowerCase().includes(term) ||
+      note.tags.some((tag) => tag.toLowerCase().includes(term))
+    );
+  });
+}
+
+export function sortNotes(notes: Note[]): Note[] {
+  return [...notes].sort((a, b) => {
+    if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+    return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime();
+  });
+}
+
+export function getAllNoteTags(notes: Note[], seed: readonly string[] = []): string[] {
+  const tagsSet = new Set<string>(seed);
+  notes.forEach((note) => note.tags.forEach((tag) => tagsSet.add(tag)));
+  return Array.from(tagsSet).sort();
 }
