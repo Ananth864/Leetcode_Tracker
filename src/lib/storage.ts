@@ -6,6 +6,7 @@ const STORAGE_KEYS = {
   NOTES: 'leetcode-tracker-notes',
   GIST_ID: 'leetcode-tracker-gist-id',
   LAST_SYNCED: 'leetcode-tracker-last-synced',
+  LOCAL_LAST_MODIFIED: 'leetcode-tracker-local-last-modified',
   THEME: 'leetcode-tracker-theme',
 } as const;
 
@@ -95,6 +96,23 @@ export function loadLastSynced(): string | null {
     return localStorage.getItem(STORAGE_KEYS.LAST_SYNCED);
   } catch (error) {
     console.error('Failed to load lastSynced from localStorage:', error);
+    return null;
+  }
+}
+
+export function saveLocalLastModified(timestamp: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEYS.LOCAL_LAST_MODIFIED, timestamp);
+  } catch (error) {
+    console.error('Failed to save localLastModified to localStorage:', error);
+  }
+}
+
+export function loadLocalLastModified(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEYS.LOCAL_LAST_MODIFIED);
+  } catch (error) {
+    console.error('Failed to load localLastModified from localStorage:', error);
     return null;
   }
 }

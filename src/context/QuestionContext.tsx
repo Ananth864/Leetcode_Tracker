@@ -10,6 +10,8 @@ import {
   saveGistId,
   saveLastSynced,
   loadLastSynced,
+  saveLocalLastModified,
+  loadLocalLastModified,
 } from '@/lib/storage';
 import { syncToGist, syncFromGist } from '@/lib/github-gist';
 import { sortQuestions, sortNotes } from '@/lib/utils';
@@ -45,6 +47,7 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
   const questionsRef = useRef<Question[]>([]);
   const notesRef = useRef<Note[]>([]);
   const gistIdRef = useRef<string | null>(null);
+  const lastModifiedRef = useRef<string | null>(null);
 
   questionsRef.current = questions;
   notesRef.current = notes;
@@ -56,6 +59,9 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
       const savedNotes = loadNotes();
       const savedGistId = loadGistId();
       const savedLastSynced = loadLastSynced();
+
+      // Bootstrap lastModifiedRef for legacy installs (no localLastModified yet).
+      lastModifiedRef.current = loadLocalLastModified() ?? savedLastSynced ?? null;
 
       if (savedQuestions) {
         setQuestions(savedQuestions);
@@ -85,14 +91,34 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         if (gistIdToLoad) {
           const result = await syncFromGist(gistIdToLoad, setSyncStatus);
           if (result.success && result.data) {
-            const sortedQuestions = sortQuestions(result.data.questions);
-            setQuestions(sortedQuestions);
-            saveQuestions(sortedQuestions);
-            if (result.data.notes) {
-              const sortedNotes = sortNotes(result.data.notes);
-              setNotes(sortedNotes);
-              saveNotes(sortedNotes);
+            const gistLastSynced = result.data.lastSynced;
+            const localTs = loadLocalLastModified();
+
+            // Last-write-wins: overwrite local only if there's no local
+            // timestamp (first run / legacy), or the gist is genuinely newer
+            // (e.g. another device wrote it).
+            const gistNewer =
+              !localTs || (Boolean(gistLastSynced) && gistLastSynced! > localTs);
+
+            if (gistNewer) {
+              const sortedQuestions = sortQuestions(result.data.questions);
+              setQuestions(sortedQuestions);
+              saveQuestions(sortedQuestions);
+              questionsRef.current = sortedQuestions;
+              if (result.data.notes) {
+                const sortedNotes = sortNotes(result.data.notes);
+                setNotes(sortedNotes);
+                saveNotes(sortedNotes);
+                notesRef.current = sortedNotes;
+              }
+              const acceptedTs = gistLastSynced || localTs || null;
+              if (acceptedTs) {
+                lastModifiedRef.current = acceptedTs;
+                saveLocalLastModified(acceptedTs);
+              }
             }
+            // Otherwise keep local — do not clobber correct local data.
+
             setGistIdState(gistIdToLoad);
             saveGistId(gistIdToLoad);
             if (result.data.lastSynced) {
@@ -115,7 +141,7 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
     return {
       questions: questionsRef.current,
       notes: notesRef.current,
-      lastSynced: new Date().toISOString(),
+      lastSynced: lastModifiedRef.current || loadLastSynced() || new Date().toISOString(),
       gistId: gistIdRef.current || loadGistId() || undefined,
     };
   }, []);
@@ -123,8 +149,8 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
   const debouncedSync = useCallback(
     async () => {
       if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
-      const data = buildGistData();
       debounceTimeoutRef.current = setTimeout(async () => {
+        const data = buildGistData();
         const result = await syncToGist(data, setSyncStatus);
         if (result.success && result.gistId) {
           saveGistId(result.gistId);
@@ -146,8 +172,13 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
       };
 
       const updatedQuestions = sortQuestions([...questionsRef.current, newQuestion]);
+      questionsRef.current = updatedQuestions;
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
+
+      const ts = new Date().toISOString();
+      lastModifiedRef.current = ts;
+      saveLocalLastModified(ts);
 
       await debouncedSync();
     },
@@ -160,8 +191,13 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         q.id === id ? { ...q, ...updates } : q
       );
       const sortedQuestions = sortQuestions(updatedQuestions);
+      questionsRef.current = sortedQuestions;
       setQuestions(sortedQuestions);
       saveQuestions(sortedQuestions);
+
+      const ts = new Date().toISOString();
+      lastModifiedRef.current = ts;
+      saveLocalLastModified(ts);
 
       await debouncedSync();
     },
@@ -171,8 +207,13 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
   const deleteQuestion = useCallback(
     async (id: string) => {
       const updatedQuestions = questionsRef.current.filter((q) => q.id !== id);
+      questionsRef.current = updatedQuestions;
       setQuestions(updatedQuestions);
       saveQuestions(updatedQuestions);
+
+      const ts = new Date().toISOString();
+      lastModifiedRef.current = ts;
+      saveLocalLastModified(ts);
 
       await debouncedSync();
     },
@@ -190,8 +231,12 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
       };
 
       const updatedNotes = sortNotes([...notesRef.current, newNote]);
+      notesRef.current = updatedNotes;
       setNotes(updatedNotes);
       saveNotes(updatedNotes);
+
+      lastModifiedRef.current = now;
+      saveLocalLastModified(now);
 
       await debouncedSync();
       return newNote;
@@ -207,8 +252,13 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
           : n
       );
       const sortedNotes = sortNotes(updatedNotes);
+      notesRef.current = sortedNotes;
       setNotes(sortedNotes);
       saveNotes(sortedNotes);
+
+      const ts = new Date().toISOString();
+      lastModifiedRef.current = ts;
+      saveLocalLastModified(ts);
 
       await debouncedSync();
     },
@@ -218,8 +268,13 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
   const deleteNote = useCallback(
     async (id: string) => {
       const updatedNotes = notesRef.current.filter((n) => n.id !== id);
+      notesRef.current = updatedNotes;
       setNotes(updatedNotes);
       saveNotes(updatedNotes);
+
+      const ts = new Date().toISOString();
+      lastModifiedRef.current = ts;
+      saveLocalLastModified(ts);
 
       await debouncedSync();
     },
@@ -245,14 +300,19 @@ export function QuestionProvider({ children }: { children: ReactNode }) {
         const sortedQuestions = sortQuestions(result.data.questions);
         setQuestions(sortedQuestions);
         saveQuestions(sortedQuestions);
+        questionsRef.current = sortedQuestions;
         if (result.data.notes) {
           const sortedNotes = sortNotes(result.data.notes);
           setNotes(sortedNotes);
           saveNotes(sortedNotes);
+          notesRef.current = sortedNotes;
         }
         saveGistId(newGistId);
+        const acceptedTs = result.data.lastSynced || new Date().toISOString();
         saveLastSynced(new Date().toISOString());
         setLastSynced(new Date().toISOString());
+        lastModifiedRef.current = acceptedTs;
+        saveLocalLastModified(acceptedTs);
         setGistIdState(newGistId);
         setImportFromGist(false);
       }
